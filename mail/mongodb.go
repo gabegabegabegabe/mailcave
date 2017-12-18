@@ -49,6 +49,9 @@ func (ma *MongoArchive) Open() error {
 		return err
 	}
 	ma.session = session
+
+	ma.logger.Printf("connected to database")
+
 	return nil
 }
 

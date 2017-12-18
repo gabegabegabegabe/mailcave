@@ -89,6 +89,7 @@ func (a *Archivist) handleStore(rw http.ResponseWriter, req *http.Request, _ htt
 		a.sendErrorResponse(rw, "500 Internal Server Error", 500, err, req)
 		return
 	}
+	a.logger.Printf("successfully archived message with new id '%s'", id)
 
 	a.sendStoreSuccessResponse(rw, id, req)
 }

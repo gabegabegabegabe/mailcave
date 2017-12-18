@@ -11,6 +11,7 @@ ENV PATH $GOPATH/bin:$PATH
 ADD . $GOPATH/src/github.com/tambchop/mailcave
 
 # retrieve dependencies
+WORKDIR $GOPATH/src/github.com/tambchop/mailcave/cmd/mailcave
 RUN go get ./
 
 # install the mailcave service

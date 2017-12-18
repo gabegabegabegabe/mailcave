@@ -28,17 +28,17 @@ func MsgFromMIMEMessage(mimeMsg *mail.Message) (*Msg, error) {
 
 	toList, err := mimeMsg.Header.AddressList(toKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse To value from MIME header: %s", err)
+		return nil, fmt.Errorf("failed to parse To value from MIME header with error '%s'", err)
 	}
 
 	fromList, err := mimeMsg.Header.AddressList(fromKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse From value from MIME header: %s", err)
+		return nil, fmt.Errorf("failed to parse From value from MIME header with error '%s'", err)
 	}
 
 	date, err := mimeMsg.Header.Date()
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve Date from MIME header: %s", err)
+		return nil, fmt.Errorf("failed to retrieve Date from MIME header with error '%s'", err)
 	}
 	zone, _ := date.Zone()
 	dateStr := date.Format(dateFormatPrefix + zone)

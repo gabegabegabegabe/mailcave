@@ -1,2 +1,3 @@
 logs/
 cmd/mailcave/logs/
+cmd/mailsend/*.msg
