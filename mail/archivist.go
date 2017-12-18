@@ -53,7 +53,6 @@ func (a *Archivist) Start(ctx context.Context, addr string) error {
 	defer a.archive.Close()
 
 	router := httprouter.New()
-	router.GET("/", handleIndex)
 	router.POST("/store", a.handleStore)
 
 	err = http.ListenAndServe(addr, router)
@@ -62,10 +61,6 @@ func (a *Archivist) Start(ctx context.Context, addr string) error {
 	}
 
 	return nil
-}
-
-func handleIndex(respWriter http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	fmt.Fprint(respWriter, "the cave is too dark to have a UI presently =/")
 }
 
 func (a *Archivist) handleStore(rw http.ResponseWriter, req *http.Request, _ httprouter.Params) {
