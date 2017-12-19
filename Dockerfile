@@ -1,9 +1,9 @@
 FROM golang
 
-# allow the user to pass in the GOPATH specific to their environment
 ARG go_path=/go
 
 # set the necessary environment variables for golang
+ENV GOBIN /go/bin
 ENV GOPATH $go_path
 ENV PATH $GOPATH/bin:$PATH
 
@@ -18,7 +18,7 @@ RUN go get ./
 RUN go install github.com/tambchop/mailcave/cmd/mailcave
 
 # the binary to run
-ENTRYPOINT $GOPATH/bin/mailcave
+ENTRYPOINT ["/go/bin/mailcave", "--dbAddr", "mongodb://mongodb:27017/", "--dbName", "mailcave", "--ipAddr", ":8080"]
 
 # run this service on the following port
 EXPOSE 8080

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"time"
 
 	"github.com/tambchop/mailcave/logging"
 	"github.com/tambchop/mailcave/mail"
@@ -22,9 +23,11 @@ func main() {
 	mongo := mail.NewMongoArchive(*dbAddr, *dbName, logger)
 	archivist := mail.NewArchivist(mongo, logger)
 
+	time.Sleep(1 * time.Second)
+
 	ctx := context.Background()
 	err := archivist.Start(ctx, *ipAddr)
 	if err != nil {
-		logger.Printf("failed to start Archiver with error %s", err)
+		logger.Printf("failed to start Archiver with error '%s'", err)
 	}
 }

@@ -1,0 +1,26 @@
+version: '2'
+
+services:
+  mailcave:
+    build:
+      context: .
+      args:
+        go_path: $GOPATH
+    ports:
+      - 8080:8080
+    links:
+      - mongodb:mongodb
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      - MONGO_DATA_DIR=/data/db
+    volumes:
+      - mongo:/data/db
+    ports:
+      - 27017:27017
+    command: mongod --smallfiles
+volumes:
+  mongo:
