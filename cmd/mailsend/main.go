@@ -1,9 +1,13 @@
 package main
 
 import (
+	"archive/tar"
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -34,20 +38,62 @@ func postMessage(mimeStr string, addr string) error {
 	return nil
 }
 
-func main() {
+func processSingleFile(mimeFile string, addr string) {
 
-	mimeFile := flag.String("mimeFile", "mime.msg", "the name of the file containing a MIME message")
-	addr := flag.String("mailcaveAddr", "http://localhost:8080/store", "the address of the POST endpoint")
-	flag.Parse()
-
-	mimeBytes, err := ioutil.ReadFile(*mimeFile)
+	mimeBytes, err := ioutil.ReadFile(mimeFile)
 	if err != nil {
 		panic(err)
 	}
 	mimeStr := string(mimeBytes)
 
-	err = postMessage(mimeStr, *addr)
+	err = postMessage(mimeStr, addr)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func processTarball(tarFileName string, addr string) {
+
+	tarBytes, err := ioutil.ReadFile(tarFileName)
+	if err != nil {
+		panic(err)
+	}
+
+	// Open the tar archive for reading.
+	// take from somewhere
+	r := bytes.NewReader(tarBytes)
+	tr := tar.NewReader(r)
+
+	// Iterate through the files in the archive.
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			// end of tar archive
+			break
+		}
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Printf("Contents of %s:\n", hdr.Name)
+
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(tr)
+		mimeStr := buf.String()
+		processSingleFile(mimeStr, addr)
+	}
+}
+
+func main() {
+
+	mode := flag.String("mode", "file", "mode: file (single file) or tar (tarball of files)")
+	mimeFile := flag.String("mimeFile", "mime.msg", "the name of the file containing a MIME message")
+	tarFile := flag.String("tarFile", "emails.tar.gz", "a tarball containing MIME messages")
+	addr := flag.String("mailcaveAddr", "http://localhost:8080/store", "the address of the POST endpoint")
+	flag.Parse()
+
+	if *mode == "file" {
+		processSingleFile(*mimeFile, *addr)
+	} else {
+		processTarball(*tarFile, *addr)
 	}
 }
