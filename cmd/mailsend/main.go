@@ -3,13 +3,14 @@ package main
 import (
 	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -52,48 +53,57 @@ func processSingleFile(mimeFile string, addr string) {
 	}
 }
 
-func processTarball(tarFileName string, addr string) {
+func processTarGZ(tarGZFileName string, addr string) {
 
-	tarBytes, err := ioutil.ReadFile(tarFileName)
+	tgzf, err := os.Open(tarGZFileName)
 	if err != nil {
 		panic(err)
 	}
 
-	// Open the tar archive for reading.
-	// take from somewhere
-	r := bytes.NewReader(tarBytes)
-	tr := tar.NewReader(r)
+	gzf, err := gzip.NewReader(tgzf)
+	if err != nil {
+		panic(err)
+	}
 
-	// Iterate through the files in the archive.
+	tr := tar.NewReader(gzf)
+
 	for {
-		hdr, err := tr.Next()
+		header, err := tr.Next()
 		if err == io.EOF {
-			// end of tar archive
 			break
 		}
 		if err != nil {
-			log.Fatalln(err)
+			panic(err)
 		}
-		fmt.Printf("Contents of %s:\n", hdr.Name)
 
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(tr)
-		mimeStr := buf.String()
-		processSingleFile(mimeStr, addr)
+		switch header.Typeflag {
+		case tar.TypeDir:
+			continue
+		case tar.TypeReg:
+			buf := new(bytes.Buffer)
+			_, err = buf.ReadFrom(tr)
+			if err != nil {
+				panic(err)
+			}
+			mimeStr := buf.String()
+			postMessage(mimeStr, addr)
+		default:
+			panic(fmt.Errorf("unknown file type (%v) in tar file", header.Typeflag))
+		}
 	}
 }
 
 func main() {
 
-	mode := flag.String("mode", "file", "mode: file (single file) or tar (tarball of files)")
+	mode := flag.String("mode", "file", "mode: file (single file) or tar.gz (tarball of files)")
 	mimeFile := flag.String("mimeFile", "mime.msg", "the name of the file containing a MIME message")
-	tarFile := flag.String("tarFile", "emails.tar.gz", "a tarball containing MIME messages")
+	tarGZFile := flag.String("tarGZFile", "emails.tar.gz", "a tar.gz file containing MIME messages")
 	addr := flag.String("mailcaveAddr", "http://localhost:8080/store", "the address of the POST endpoint")
 	flag.Parse()
 
 	if *mode == "file" {
 		processSingleFile(*mimeFile, *addr)
 	} else {
-		processTarball(*tarFile, *addr)
+		processTarGZ(*tarGZFile, *addr)
 	}
 }
