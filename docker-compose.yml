@@ -21,6 +21,6 @@ services:
       - mongo:/data/db
     ports:
       - 27017:27017
-    command: mongod --smallfiles
+    command: mongod --smallfiles --bind_ip_all
 volumes:
   mongo:
